@@ -8,7 +8,7 @@ services:
     ports:
       - 5432:5432
     volumes:
-      - ../postgres-volume:/var/lib/postgresql
+      - ../postgres-volume:/var/lib/postgresql/
     environment:
       POSTGRES_DB: budget-api
       POSTGRES_USER: postgres
@@ -22,4 +22,5 @@ services:
       - 8080:8080
 
 networks:
-  database-management: {}
+  database-management: 
+    driver: bridge
