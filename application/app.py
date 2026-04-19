@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
-from .routers import income
-from database import SessionDep
+
+from application.routers import income
 
 # Intialize Web API
 app = FastAPI()

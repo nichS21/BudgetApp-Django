@@ -6,6 +6,6 @@ class ModelBase(AsyncAttrs, DeclarativeBase):
     pass
 
 # Application model library
-from .user import User
-from .income import Income
+from .user import *
+from .income import *
 

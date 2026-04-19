@@ -1,12 +1,14 @@
 from typing import TYPE_CHECKING
+
 from sqlalchemy import String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 from . import ModelBase
 
 
 # Used to avoid circular imports for FK relationship
 if TYPE_CHECKING:
-    from models import Income
+    from .income import Income
 
 
 class User(ModelBase):

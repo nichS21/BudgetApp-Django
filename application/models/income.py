@@ -10,7 +10,7 @@ from dataclasses import dataclass
 
 # Used to avoid circular imports for FK relationship
 if TYPE_CHECKING:
-    from models import User
+    from .user import User
 
 
 class Income(ModelBase):
