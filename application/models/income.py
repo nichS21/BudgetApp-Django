@@ -18,7 +18,7 @@ class Income(ModelBase):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     annual_salary: Mapped[int] = mapped_column()
-    income_tax: Mapped[float] = mapped_column(Float(5))
+    income_tax: Mapped[float] = mapped_column(Float(5))             # For example: 100.00% 
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
 
     # Create reference to User object through income
@@ -34,10 +34,6 @@ class IncomeCreate():
     annual_salary: int
     income_tax: float
     user_id: int
-
-@dataclass 
-class IncomeRetrieve(IncomeCreate):
-    pass
 
 @dataclass
 class IncomeUpdate():

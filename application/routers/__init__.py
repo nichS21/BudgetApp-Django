@@ -1,4 +1,4 @@
-from .income import * 
+from .incomes import * 
 from .authentication import *
 from .contributions import *
 from .expenses import *

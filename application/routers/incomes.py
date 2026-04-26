@@ -57,13 +57,13 @@ async def get_income_and_tax(user_id: int, session: SessionDep):
         summary="Update annual salary and income tax rate",
         description="Update the annual salary and income tax rate for this user."
         )
-async def update_income_and_tax(user_id: int, update_data: IncomeUpdate, session: SessionDep) -> JSONResponse:
+async def update_income_and_tax(user_id: int, data: IncomeUpdate, session: SessionDep) -> JSONResponse:
     try:
         await session.execute(
            update(Income) 
            .where(Income.user_id == user_id)
-           .values(annual_salary=update_data.annual_salary,
-                   income_tax=update_data.income_tax)
+           .values(annual_salary=data.annual_salary,
+                   income_tax=data.income_tax)
         )
     except:
         content = {"message": "Failed to update income and tax for this user."}
