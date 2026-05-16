@@ -1,7 +1,8 @@
+import enum
 from typing import TYPE_CHECKING
 
 from sqlalchemy import Float, ForeignKey, NUMERIC, String, BOOLEAN
-from sqlalchemy.orm import Mapped, column_property, mapped_column
+from sqlalchemy.orm import Mapped, column_property, mapped_column, relationship
 
 from marshmallow import Schema, fields
 
@@ -14,49 +15,57 @@ from dataclasses import dataclass
 if TYPE_CHECKING:
     from .user import User
 
+class ContributionType(enum.Enum):
+    RETIREMENT = "retirement"
+    INVESTMENT = "investment"
+    SAVINGS = "savings"
+    PERSONAL_GOAL = "personal goal"
+    OTHER = "other"
 
-class Expense(ModelBase):
-    __tablename__ = "expense"
+class Contribution(ModelBase):
+    __tablename__ = "contribution"
 
     id: Mapped[int] = mapped_column(primary_key=True)
     frequency: Mapped[float] = mapped_column(NUMERIC())     # Frequency of occurrence relative to a month. For example, quarterly is 1/3 the total quarterly cost, applied every month
     name: Mapped[str] = mapped_column(String(255))
     description: Mapped[str] = mapped_column(String(511))
-    cost: Mapped[float] = mapped_column(NUMERIC())
+    amount: Mapped[float] = mapped_column(NUMERIC())
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
-    is_debt: Mapped[bool] = mapped_column(BOOLEAN)
-    monthly_cost: Mapped[float] = column_property(cost * frequency)
+    type: Mapped[ContributionType] = mapped_column(nullable=False)
+    monthly_cost: Mapped[float] = column_property(amount * frequency)
+
 
     def __repr__(self) -> str:
-        return f"Expense(id={self.id}, user={self.user_id}, name={self.name}, cost={self.cost}, frequency={self.frequency})"
+        return f"Contribution(id={self.id}, user={self.user_id}, name={self.name}, amount={self.amount}, frequency={self.frequency})"
     
 
-# Dataclasses for use as parameters for endpoints
+# Pydantic dataclasses for endpoint parameters
 @dataclass
-class ExpenseCreate():
+class ContributionCreate():
     frequency: float
     name: str
     description: str
-    cost: float
+    amount: float
     user_id: int
-    is_debt: bool
+    type: ContributionType
 
 
 @dataclass
-class ExpenseUpdate():
+class ContributionUpdate():
     frequency: float
     name: str
     description: str
-    cost: float
-    is_debt: bool
+    amount: float
+    type: ContributionType
+
 
 
 # Marshmallow Schema for serialization/deserialization
-class ExpenseSchema(Schema):
+class ContributionSchema(Schema):
     frequency = fields.Float()
     name = fields.Str()
     description = fields.Str()
-    cost = fields.Float()
+    amount = fields.Float()
     user_id = fields.Int()
-    is_debt = fields.Bool()
+    type = fields.Enum(ContributionType)
     monthly_cost = fields.Float()

@@ -8,8 +8,7 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 # TODO: Get connection details from environment varibles - no hardcoded values
 # TODO 'echo=' should get from environment variables on whether or not is in development
 connection_str = "postgresql+psycopg://postgres:postgres@localhost:5432/budget-api"
-connect_args = {"check_same_thread": False}
-engine = create_async_engine(connection_str, echo=True, connect_args=connect_args)
+engine = create_async_engine(connection_str, echo=True)
 
 
 # Ensure that we use a single session, per request to the API

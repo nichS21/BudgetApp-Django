@@ -3,6 +3,8 @@ from typing import TYPE_CHECKING
 from sqlalchemy import Float, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from marshmallow import Schema, fields
+
 from . import ModelBase
 
 from dataclasses import dataclass
@@ -39,3 +41,10 @@ class IncomeCreate():
 class IncomeUpdate():
     annual_salary: int
     income_tax: float
+
+
+# Marshmallow Schema for serialization/deserialization
+class IncomeSchema(Schema):
+    annual_salary = fields.Int()
+    income_tax = fields.Float()
+    user_id = fields.Int()

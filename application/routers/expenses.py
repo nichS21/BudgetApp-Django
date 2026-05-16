@@ -3,10 +3,10 @@ import json
 from fastapi import APIRouter, status
 from fastapi.responses import JSONResponse
 
-from sqlalchemy import delete, select, update
+from sqlalchemy import ScalarResult, delete, select, update
 
 from application.database import SessionDep
-from application.models.expense import Expense, ExpenseCreate, ExpenseUpdate
+from application.models.expense import Expense, ExpenseCreate, ExpenseSchema, ExpenseUpdate
 
 
 expense_router = APIRouter(
@@ -18,7 +18,7 @@ expense_router = APIRouter(
 @expense_router.post(
     "/",
     summary="Create an expense",
-    description="Create and expense for a specified user"
+    description="Create an expense for a specified user"
 )
 async def create_expense(data: ExpenseCreate, session: SessionDep) -> JSONResponse:
     try: 
@@ -45,13 +45,19 @@ async def create_expense(data: ExpenseCreate, session: SessionDep) -> JSONRespon
 )
 async def get_expense(expense_id: int, session: SessionDep) -> JSONResponse:
     try:
-        result = await session.scalars(select(Expense).where(Expense.id == expense_id))
+        result: ScalarResult = await session.scalars(select(Expense).where(Expense.id == expense_id))
+        result = result.one()
+        expense_schema: ExpenseSchema = ExpenseSchema()
+        expense_json = expense_schema.dump(result)
     except:
         content = {"message": f"Failed to retrieve expense with ID: {expense_id}"}
         return JSONResponse(content=content, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
-    content = {"message": "Succesfully retrieved expense.",
-               "Expense": json.dumps(result)}
+        
+    content = {
+        "message": "Succesfully retrieved expense.",
+        "expense": expense_json
+    }
+
     return JSONResponse(content=content, status_code=status.HTTP_200_OK)
 
 
@@ -99,18 +105,23 @@ async def delete_expense(expense_id: int, session: SessionDep) -> JSONResponse:
 
 
 @expense_router.get(
-    "/user-list/{user_id}",
+    "/expense-list/{user_id}",
     summary="List expenses by user",
     description="Get all the expenses tied to the specified user"
 )
 async def list_expenses(user_id: int, session: SessionDep) -> JSONResponse:
     try:
-        result = await session.scalars(select(Expense).where(Expense.user_id == user_id))
-        result = result.all()
+        result: ScalarResult = await session.scalars(select(Expense).where(Expense.user_id == user_id))
+        results = result.all()
+        expense_schema: ExpenseSchema = ExpenseSchema(many=True)
+        expense_json = expense_schema.dump(results)
     except:
         content = {"message": "Failed to retrieve expenses for this user."}
         return JSONResponse(content=content, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
-    content = {"message": "Succesfully retrieved expenses for this user.",
-               "Expenses": json.dumps(result)}
+    content = {
+        "message": "Succesfully retrieved expenses for this user.",
+        "expenses": expense_json
+    }
+
     return JSONResponse(content=content, status_code=status.HTTP_200_OK)

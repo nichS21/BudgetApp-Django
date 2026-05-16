@@ -3,10 +3,10 @@ import json
 from fastapi import APIRouter, status
 from fastapi.responses import JSONResponse
 
-from sqlalchemy import select, update
+from sqlalchemy import ScalarResult, select, update
 
 from application.database import SessionDep
-from application.models.income import Income, IncomeCreate, IncomeUpdate
+from application.models.income import Income, IncomeCreate, IncomeSchema, IncomeUpdate
 
 
 income_router = APIRouter(
@@ -42,13 +42,19 @@ async def create_income_and_tax(data: IncomeCreate, session: SessionDep) -> JSON
         )
 async def get_income_and_tax(user_id: int, session: SessionDep):
     try:
-        result = await session.scalars(select(Income).where(Income.user_id == user_id))
+        result: ScalarResult = await session.scalars(select(Income).where(Income.user_id == user_id))
+        result = result.one()
+        income_schema: IncomeSchema = IncomeSchema()
+        income_json = income_schema.dump(result)
     except:
         content = {"message": "Failed retrieve annual income and tax for this user."}
         return JSONResponse(content=content, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    content = {"message": "Successfully retrieved date for this user",
-               "Income": json.dumps(result)}
+    content = {
+        "message": "Successfully retrieved date for this user", 
+        "income": income_json
+        }
+    
     return JSONResponse(content=content, status_code=status.HTTP_200_OK)
 
 
