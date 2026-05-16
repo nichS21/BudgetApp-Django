@@ -10,7 +10,8 @@
     1) On first start-up of the project will need to run:
         1) `pipenv install` to get all project dependencies in the shell
         2) `pipenv shell` if not already in the shell. Use this in the future whenever you need to use the CLI with this project (like for running it).
-4) To start the development server, use: `fastapi dev --host 0.0.0.0 --port 8000`
+4) Copy `example.env` from `envs/` directory and rename it to `.env` placing it in the root of the project. This will be used to pull environment variables from during developlment. The example is a template that will be useful only for local work, assuming you have been following this guide.
+5) To start the development server, use: `fastapi dev --host 0.0.0.0 --port 8000`
     1) This will start the server in development mode and make it accessible via `localhost:8000` in the browser as well as make it able to receive connections via other devices on the network.
     2) OpenAPI docs are accessible via `localhost:8000/docs`
     3) Alembic handles migrations. Run `alembic upgrade head` to migrate to the most recent database update
