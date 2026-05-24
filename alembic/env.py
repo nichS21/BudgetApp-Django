@@ -1,14 +1,13 @@
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config
+from sqlalchemy import create_engine
 from sqlalchemy import pool
 
 from alembic import context
 
 from application.models import ModelBase
+from application.config import get_settings
 
-# TODO: Anywhere 'sqlalchemy.url' is used, should update to pull configs from environment variables
-#       Currently is pulling harcoded values from 'alembic.ini' file
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -30,6 +29,8 @@ target_metadata = ModelBase.metadata
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
 
+# Get settings from app (which gets from .env file)
+settings = get_settings()
 
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode.
@@ -43,7 +44,8 @@ def run_migrations_offline() -> None:
     script output.
 
     """
-    url = config.get_main_option("sqlalchemy.url")
+
+    url = settings.connection_str  # Pull from alembic.ini: config.get_main_option("sqlalchemy.url")
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -62,11 +64,14 @@ def run_migrations_online() -> None:
     and associate a connection with the context.
 
     """
-    connectable = engine_from_config(
-        config.get_section(config.config_ini_section, {}),
-        prefix="sqlalchemy.",
-        poolclass=pool.NullPool,
-    )
+    # Connect using alembic.ini:
+    # connectable = engine_from_config(
+    #     config.get_section(config.config_ini_section, {}),
+    #     prefix="sqlalchemy.",
+    #     poolclass=pool.NullPool,
+    # )
+
+    connectable = create_engine(settings.connection_str)
 
     with connectable.connect() as connection:
         context.configure(

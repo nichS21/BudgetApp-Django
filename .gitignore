@@ -1,0 +1,7 @@
+application/__pycache__
+application/routers/__pycache__
+application/models/__pycache__
+local-test-materials/
+
+# Environment variable files
+.env

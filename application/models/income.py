@@ -3,6 +3,8 @@ from typing import TYPE_CHECKING
 from sqlalchemy import Float, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from marshmallow import Schema, fields
+
 from . import ModelBase
 
 from dataclasses import dataclass
@@ -18,7 +20,7 @@ class Income(ModelBase):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     annual_salary: Mapped[int] = mapped_column()
-    income_tax: Mapped[float] = mapped_column(Float(5))
+    income_tax: Mapped[float] = mapped_column(Float(5))             # For example: 100.00% 
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
 
     # Create reference to User object through income
@@ -35,11 +37,14 @@ class IncomeCreate():
     income_tax: float
     user_id: int
 
-@dataclass 
-class IncomeRetrieve(IncomeCreate):
-    pass
-
 @dataclass
 class IncomeUpdate():
     annual_salary: int
     income_tax: float
+
+
+# Marshmallow Schema for serialization/deserialization
+class IncomeSchema(Schema):
+    annual_salary = fields.Int()
+    income_tax = fields.Float()
+    user_id = fields.Int()

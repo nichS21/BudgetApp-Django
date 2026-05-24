@@ -6,7 +6,9 @@ name = "pypi"
 [packages]
 fastapi = {extras = ["standard"], version = "*"}
 psycopg = {extras = ["binary"], version = "*"}
+marshmallow = "*"
 alembic = "*"
+python-dotenv = "*"
 
 [dev-packages]
 
