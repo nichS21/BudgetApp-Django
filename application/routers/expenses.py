@@ -30,7 +30,8 @@ async def create_expense(data: ExpenseCreate, session: SessionDep) -> JSONRespon
                           is_debt=data.user_id)
         session.add(expense)
         await session.commit()
-    except:
+    except Exception as e:
+        # TODO: add logging here to capture the exception
         content = {"message": "Failed to create an expense for this user."}
         return JSONResponse(content=content, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
@@ -49,7 +50,8 @@ async def get_expense(expense_id: int, session: SessionDep) -> JSONResponse:
         result = result.one()
         expense_schema: ExpenseSchema = ExpenseSchema()
         expense_json = expense_schema.dump(result)
-    except:
+    except Exception as e:
+        # TODO: add logging here to capture the exception
         content = {"message": f"Failed to retrieve expense with ID: {expense_id}"}
         return JSONResponse(content=content, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
@@ -77,7 +79,8 @@ async def update_expense(expense_id: int, data: ExpenseUpdate, session: SessionD
                     cost=data.cost,
                     is_debt=data.is_debt)
         )
-    except:
+    except Exception as e:
+        # TODO: add logging here to capture the exception
         content = {"message": "Failed to update expense."}
         return JSONResponse(content=content, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
@@ -96,7 +99,8 @@ async def delete_expense(expense_id: int, session: SessionDep) -> JSONResponse:
             delete(Expense)
             .where(Expense.id == expense_id)
         )
-    except:
+    except Exception as e:
+        # TODO: add logging here to capture the exception
         content = {"message": "Failed to delete given expense."}
         return JSONResponse(content=content, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
@@ -115,7 +119,8 @@ async def list_expenses(user_id: int, session: SessionDep) -> JSONResponse:
         results = result.all()
         expense_schema: ExpenseSchema = ExpenseSchema(many=True)
         expense_json = expense_schema.dump(results)
-    except:
+    except Exception as e:
+        # TODO: add logging here to capture the exception
         content = {"message": "Failed to retrieve expenses for this user."}
         return JSONResponse(content=content, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
     

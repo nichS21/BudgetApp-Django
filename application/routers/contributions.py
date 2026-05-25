@@ -31,7 +31,8 @@ async def create_contribution(data: ContributionCreate, session: SessionDep) -> 
                                     )
         session.add(contribution)
         await session.commit()
-    except:
+    except Exception as e:
+        # TODO: add logging here to capture the exception
         content = {"message": "Failed to create a contribution for this user."}
         return JSONResponse(content=content, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
@@ -50,7 +51,8 @@ async def get_contribution(contribution_id: int, session: SessionDep) -> JSONRes
         result = result.one()
         contribution_schema: ContributionSchema = ContributionSchema()
         contribution_json = contribution_schema.dump(result)
-    except:
+    except Exception as e:
+        # TODO: add logging here to capture the exception
         content = {"message": f"Failed to retrieve contribution with ID: {contribution_id}"}
         return JSONResponse(content=content, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
@@ -78,7 +80,8 @@ async def update_contribution(contribution_id: int, data: ContributionUpdate, se
                     amount=data.amount,
                     type=data.amount)
         )
-    except:
+    except Exception as e:
+        # TODO: add logging here to capture the exception
         content = {"message": "Failed to update contribution."}
         return JSONResponse(content=content, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
@@ -97,7 +100,8 @@ async def delete_contribution(contribution_id: int, session: SessionDep) -> JSON
             delete(Contribution)
             .where(Contribution.id == contribution_id)
         )
-    except:
+    except Exception as e:
+        # TODO: add logging here to capture the exception
         content = {"message": "Failed to delete given contribution."}
         return JSONResponse(content=content, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
@@ -116,7 +120,8 @@ async def list_contributions(user_id: int, session: SessionDep) -> JSONResponse:
         results = result.all()
         contribution_schema: ContributionSchema = ContributionSchema(many=True)
         contribution_json = contribution_schema.dump(results)
-    except:
+    except Exception as e:
+        # TODO: add logging here to capture the exception
         content = {"message": "Failed to retrieve contributions for this user."}
         return JSONResponse(content=content, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
     

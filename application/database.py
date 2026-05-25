@@ -25,6 +25,5 @@ async def get_session():
     async with AsyncSession(engine) as session:
         yield session
 
-
 # Create FastAPI dependency we can inject as needed, per endpoint
 SessionDep = Annotated[AsyncSession, Depends(get_session)]
