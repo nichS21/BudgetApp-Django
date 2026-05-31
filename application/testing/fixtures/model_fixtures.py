@@ -1,6 +1,6 @@
-import pytest_asyncio
+import pytest
 
-from application.models import User
+from application.models import User, Income
 
 '''
 Note: The modal fixtures here are not commited to the test database
@@ -12,9 +12,17 @@ In other words, these fixtures have to be added to the database explicitly
 in the tests they are required in.
 '''
 
-@pytest_asyncio.fixture
-async def user():
+@pytest.fixture
+def user() -> User:
     return User(
         email="test@email.com",
         hashed_password="hashed"
+    )
+
+
+@pytest.fixture
+def income() -> Income:
+    return Income(
+        annual_salary=90000,
+        income_tax=22.0
     )

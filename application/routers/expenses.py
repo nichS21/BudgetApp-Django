@@ -79,6 +79,7 @@ async def update_expense(expense_id: int, data: ExpenseUpdate, session: SessionD
                     cost=data.cost,
                     is_debt=data.is_debt)
         )
+        await session.commit()
     except Exception as e:
         # TODO: add logging here to capture the exception
         content = {"message": "Failed to update expense."}
@@ -99,6 +100,7 @@ async def delete_expense(expense_id: int, session: SessionDep) -> JSONResponse:
             delete(Expense)
             .where(Expense.id == expense_id)
         )
+        await session.commit()
     except Exception as e:
         # TODO: add logging here to capture the exception
         content = {"message": "Failed to delete given expense."}

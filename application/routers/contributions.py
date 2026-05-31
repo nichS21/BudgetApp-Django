@@ -80,6 +80,7 @@ async def update_contribution(contribution_id: int, data: ContributionUpdate, se
                     amount=data.amount,
                     type=data.amount)
         )
+        await session.commit()
     except Exception as e:
         # TODO: add logging here to capture the exception
         content = {"message": "Failed to update contribution."}
@@ -100,6 +101,7 @@ async def delete_contribution(contribution_id: int, session: SessionDep) -> JSON
             delete(Contribution)
             .where(Contribution.id == contribution_id)
         )
+        await session.commit()
     except Exception as e:
         # TODO: add logging here to capture the exception
         content = {"message": "Failed to delete given contribution."}
