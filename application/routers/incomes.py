@@ -75,10 +75,10 @@ async def update_income_and_tax(user_id: int, data: IncomeUpdate, session: Sessi
         )
         await session.commit()
 
-        # Check number of rows matched by where clause. If it is 0, then there are no income rows that were updated by 
-        #   this query. In SQL, this would be a normal query that runs but effects 0 rows. 
+        # Check number of rows matched by where clause. If it is 0, then there are no rows that were updated by 
+        #   this query. In SQL, this would be a normal query that runs but affects 0 rows. 
         if result.rowcount is not 1: # type: ignore
-            raise Exception("No income rows were matched with this user ID by the where clause, so none were updated")
+            raise Exception("No income rows were matched with this ID, so none were updated")
     except Exception as e:
         # TODO: add logging here to capture the exception
         content = {"message": "Failed to update income and tax for this user."}

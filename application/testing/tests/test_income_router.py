@@ -43,6 +43,42 @@ async def test_income_create_successful(user: User, test_api, session) -> None:
 
 
 @pytest.mark.asyncio
+async def test_income_create_extra_fields(user: User, test_api, session) -> None:
+    # Add user to DB and get its assigned ID
+    session.add(user)
+    await session.commit()
+    await session.refresh(user)
+
+    user_id: int = user.id
+    income_tax: float = 20.5
+    annual_salary: int = 90000
+
+    # Give extra fields in request body. Note that FastAPI ignores these fields since they don't map to the dataclass object at that route
+    response = await test_api.post(
+        "/income/",
+        json={
+            "annual_salary": annual_salary,
+            "income_tax": income_tax,
+            "user_id": user_id,
+            "extra": "Never used",
+            "More": "Still not used"
+        }
+    )
+
+    # 
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json() == {"message": "Created annual income and tax successfully"}
+
+    # Query DB to verify was created
+    result: ScalarResult = await session.scalars(select(Income).where(Income.user_id == user_id))
+    income: Income = result.one()
+
+    assert income.annual_salary == annual_salary
+    assert income.income_tax == income_tax
+    assert income.user_id ==  user_id
+
+
+@pytest.mark.asyncio
 async def test_income_create_bad_payload(user: User, test_api, session) -> None:
     # Add user to DB and get its assigned ID
     session.add(user)
@@ -53,17 +89,27 @@ async def test_income_create_bad_payload(user: User, test_api, session) -> None:
     income_tax: str = "bad data"
     annual_salary: str = "more bad data"
 
-    # No user id, invalid types, and an unknown field
+    # Request that is missing required data fields
     response = await test_api.post(
         "/income/",
         json={
-            "annual_salary": annual_salary,
-            "income_tax": income_tax,
-            "field that doesn't exist": "even more bad data"
+            "user_id": user_id
         }
     )
 
-    # API should get bad data and immediately throw away request because it is receiving unexpected data 
+    # API should get bad data and immediately throw away request because it is receiving unexpected data or data in the wrong format 
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
+
+    # Request with bad data types
+    response = await test_api.post(
+        "/income/",
+        json={
+            "annual_salary": "Not a salary",
+            "income_tax": "Not an income tax value",
+            "user_id": user_id
+        }
+    )
+
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
 
     # Query database to verify that was NOT created

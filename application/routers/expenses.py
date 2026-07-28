@@ -1,5 +1,3 @@
-import json
-
 from fastapi import APIRouter, status
 from fastapi.responses import JSONResponse
 
@@ -70,7 +68,7 @@ async def get_expense(expense_id: int, session: SessionDep) -> JSONResponse:
 )
 async def update_expense(expense_id: int, data: ExpenseUpdate, session: SessionDep) -> JSONResponse:
     try:
-        await session.execute(
+        result = await session.execute(
             update(Expense)
             .where(Expense.id == expense_id)
             .values(frequency=data.frequency,
@@ -80,6 +78,11 @@ async def update_expense(expense_id: int, data: ExpenseUpdate, session: SessionD
                     is_debt=data.is_debt)
         )
         await session.commit()
+
+        # Check number of rows matched by where clause. If it is 0, then there are no rows that were updated by 
+        #   this query. In SQL, this would be a normal query that runs but affects 0 rows. 
+        if result.rowcount is not 1: # type: ignore
+            raise Exception("No expense rows where found with this ID, so none were updated")
     except Exception as e:
         # TODO: add logging here to capture the exception
         content = {"message": "Failed to update expense."}
@@ -117,7 +120,9 @@ async def delete_expense(expense_id: int, session: SessionDep) -> JSONResponse:
 )
 async def list_expenses(user_id: int, session: SessionDep) -> JSONResponse:
     try:
-        result: ScalarResult = await session.scalars(select(Expense).where(Expense.user_id == user_id))
+        result: ScalarResult = await session.scalars(select(Expense)
+                                                     .where(Expense.user_id == user_id)
+                                                     .order_by(Expense.id.desc()))
         results = result.all()
         expense_schema: ExpenseSchema = ExpenseSchema(many=True)
         expense_json = expense_schema.dump(results)

@@ -1,11 +1,12 @@
 import pytest
 
 from application.models import User, Income
+from application.models.contribution import Contribution, ContributionType
 
 '''
 Note: The modal fixtures here are not commited to the test database
     from here, because they would be deleted as soon as their respective 
-    function finishes execution, since the tests are configured to each run 
+    function finishes execution. The tests are configured to each run 
     with a clean database that is then torn down.
 
 In other words, these fixtures have to be added to the database explicitly
@@ -25,4 +26,24 @@ def income() -> Income:
     return Income(
         annual_salary=90000,
         income_tax=22.0
+    )
+
+@pytest.fixture
+def contribution() -> Contribution:
+    return Contribution(
+        frequency = 1,   # i.e. contribution applied once a month
+        name="Roth IRA",
+        description="Monthly contribution to personal Roth IRA",
+        amount=1000,
+        type=ContributionType.RETIREMENT,
+    )
+
+@pytest.fixture
+def contribution_two() -> Contribution:
+    return Contribution(
+        frequency = 4,
+        name = "New PC Fund",
+        description = "Fund for a new PC build",
+        amount = 50.50,
+        type = ContributionType.PERSONAL_GOAL,
     )
