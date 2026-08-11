@@ -3,6 +3,7 @@ import pytest
 from math import isclose
 
 from fastapi import status
+
 from sqlalchemy import ScalarResult, func, select
 
 from application.models.contribution import Contribution, ContributionType
@@ -170,9 +171,10 @@ async def test_get_contribution_successful(user: User, contribution: Contributio
     session.add(contribution)
     await session.commit()
     await session.refresh(contribution)
+    contribution_id: int = contribution.id
 
     response = await test_api.get(
-        f"/contribution/{user_id}"
+        f"/contribution/{contribution_id}"
     )
 
     response_json = response.json()
@@ -219,9 +221,10 @@ async def test_get_contribution_no_user(user: User, contribution: Contribution, 
     session.add(contribution)
     await session.commit()
     await session.refresh(contribution)
+    contribution_id: int = contribution.id
 
     response = await test_api.get(
-        f"/contribution/{user_id+1}"
+        f"/contribution/{contribution_id*2}"
     )
 
     assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -383,7 +386,7 @@ async def test_patch_contribution_no_contribution(user: User, contribution: Cont
     updated_type: str = ContributionType.SAVINGS.value
 
     response = await test_api.patch(
-        f"/contribution/{contribution.id * 2}",     # Contribution ID that doesn't exist 
+        f"/contribution/{contribution.id*2}",     # Contribution ID that doesn't exist 
         json={
           "frequency": updated_frequency,
           "name": updated_name,
@@ -426,7 +429,7 @@ async def test_patch_contribution_bad_payload(user: User, contribution: Contribu
 
     # Bad payload that is missing fields and giving the wrong types of information for required data. 
     response = await test_api.patch(
-        f"/contribution/{contribution.id * 2}",     # Contribution ID that doesn't exist 
+        f"/contribution/{contribution.id*2}",     # Contribution ID that doesn't exist 
         json={
           "frequency": "Tuesday",
           "description": updated_desc,
@@ -448,7 +451,7 @@ async def test_patch_contribution_bad_payload(user: User, contribution: Contribu
 
 
 @pytest.mark.asyncio
-async def test_delete_contribution_success(user: User, contribution: Contribution, test_api, session) -> None:
+async def test_delete_contribution_successful(user: User, contribution: Contribution, test_api, session) -> None:
     # Add user to DB and get its assigned ID
     session.add(user)
     await session.commit()
@@ -511,7 +514,7 @@ async def test_delete_contribution_no_contribution(user: User, contribution: Con
     contribution_id = contribution.id
 
     response = await test_api.delete(
-        f"/contribution/{contribution_id * 2}"      # No contribution exists at this ID   
+        f"/contribution/{contribution_id*2}"      # No contribution exists at this ID   
     )
 
     assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -549,8 +552,8 @@ async def test_contribution_list_successful(user: User, contribution: Contributi
     response_json = response.json()
     response_json = response_json['contributions']
 
-    end: int = len(contributions)
-    for i in range(end):
+    length: int = len(contributions)
+    for i in range(length):
         assert contributions[i].frequency == response_json[i]['frequency']
         assert contributions[i].name == response_json[i]['name']
         assert contributions[i].description == response_json[i]['description']
@@ -575,9 +578,8 @@ async def test_contribution_list_successful_no_contributions(user: User, test_ap
     # This user has no contributions to list, and that's OK
     assert response.status_code == status.HTTP_200_OK
     response_json = response.json()
-    response_json = response_json['contributions']
-
-    assert len(response_json) == 0
+    contributions = response_json['contributions']
+    assert len(contributions) == 0
 
 @pytest.mark.asyncio
 async def test_contribution_list_invalid_primary_key(test_api) -> None:
@@ -600,6 +602,5 @@ async def test_contribution_list_no_user(test_api) -> None:
     # A user that doesn't exist will never have any contributions
     assert response.status_code == status.HTTP_200_OK
     response_json = response.json()
-
     assert 'contributions' in response_json
     assert len(response_json['contributions']) == 0

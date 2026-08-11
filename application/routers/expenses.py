@@ -25,7 +25,7 @@ async def create_expense(data: ExpenseCreate, session: SessionDep) -> JSONRespon
                           description=data.description,
                           cost=data.cost,
                           user_id=data.user_id,
-                          is_debt=data.user_id)
+                          is_debt=data.is_debt)
         session.add(expense)
         await session.commit()
     except Exception as e:

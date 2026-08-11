@@ -2,6 +2,7 @@ import pytest
 
 from application.models import User, Income
 from application.models.contribution import Contribution, ContributionType
+from application.models.expense import Expense
 
 '''
 Note: The modal fixtures here are not commited to the test database
@@ -46,4 +47,24 @@ def contribution_two() -> Contribution:
         description = "Fund for a new PC build",
         amount = 50.50,
         type = ContributionType.PERSONAL_GOAL,
+    )
+
+@pytest.fixture
+def expense() -> Expense:
+    return Expense(
+        frequency=1/4,
+        name='Car Insurance',
+        description='Quarterly car insurance premium payment',
+        cost=255.55,
+        is_debt=False,
+    )
+
+@pytest.fixture
+def expense_two() -> Expense:
+    return Expense(
+        frequency=4,
+        name='Groceries',
+        description='Monthly weekly grocery expense',
+        cost=150.75,
+        is_debt=False
     )
