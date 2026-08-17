@@ -32,28 +32,30 @@ async def get_overview(user_id: int, session: SessionDep) -> JSONResponse:
 
         result = await session.scalars(select(Contribution)
                                 .add_columns((Contribution.amount * Contribution.frequency).label("monthly_cost"))
-                                .where(Contribution.user_id == user_id))
+                                .where(Contribution.user_id == user_id)
+                                .order_by(Contribution.id.desc()))
         contributions = result.all()
         contributions_schema = ContributionSchema(many=True)
         contributions_json = contributions_schema.dump(contributions)
 
-        contribution_monthly_total: int = 0
+        contribution_monthly_total: float = 0.0
         for contribution in contributions:
-            contribution_monthly_total += contribution.monthly_cost
+            contribution_monthly_total += float(contribution.monthly_cost)
 
         result = await session.scalars(select(Expense)
                                 .add_columns((Expense.cost * Expense.frequency).label("monthly_cost"))
-                                .where(Expense.user_id == user_id))
+                                .where(Expense.user_id == user_id)
+                                .order_by(Expense.id.desc()))
         expenses = result.all()
         expenses_schema = ExpenseSchema(many=True)
         expenses_json = expenses_schema.dump(expenses)
 
-        expense_monthly_total = 0
+        expense_monthly_total: float = 0.0
         for expense in expenses:
-            expense_monthly_total += expense.monthly_cost
+            expense_monthly_total += float(expense.monthly_cost)
 
     except Exception as e:
-        # TODO: add specific error handling to each query so can track which one fails specifically - this can be handled by logger based on teh exception caught
+        # TODO: add specific error handling to each query so can track which one fails specifically - this can be handled by logger based on the exception caught
         print(f"Exception:\n{e}")
         traceback.print_exc()
 
@@ -64,9 +66,9 @@ async def get_overview(user_id: int, session: SessionDep) -> JSONResponse:
         "message": "Succesfully retrieved contribution.",
         "income": income_json,
         "contributions": contributions_json,
-        "contribution_monthly_total": str(contribution_monthly_total),
+        "contributions_monthly_total": contribution_monthly_total,
         "expenses": expenses_json,
-        "expenses_monthly_total": str(expense_monthly_total)
+        "expenses_monthly_total": expense_monthly_total
     }
 
     return JSONResponse(content=content, status_code=status.HTTP_200_OK)

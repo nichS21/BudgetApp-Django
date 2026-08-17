@@ -1,5 +1,3 @@
-import json
-
 from fastapi import APIRouter, status
 from fastapi.responses import JSONResponse
 
@@ -31,11 +29,12 @@ async def create_contribution(data: ContributionCreate, session: SessionDep) -> 
                                     )
         session.add(contribution)
         await session.commit()
-    except:
+    except Exception as e:
+        # TODO: add logging here to capture the exception
         content = {"message": "Failed to create a contribution for this user."}
         return JSONResponse(content=content, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
-    content= {"message": "Create contribution successfully"}
+    content= {"message": "Created contribution successfully"}
     return JSONResponse(content=content, status_code=status.HTTP_201_CREATED)
 
 
@@ -50,7 +49,8 @@ async def get_contribution(contribution_id: int, session: SessionDep) -> JSONRes
         result = result.one()
         contribution_schema: ContributionSchema = ContributionSchema()
         contribution_json = contribution_schema.dump(result)
-    except:
+    except Exception as e:
+        # TODO: add logging here to capture the exception
         content = {"message": f"Failed to retrieve contribution with ID: {contribution_id}"}
         return JSONResponse(content=content, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
@@ -69,16 +69,23 @@ async def get_contribution(contribution_id: int, session: SessionDep) -> JSONRes
 )
 async def update_contribution(contribution_id: int, data: ContributionUpdate, session: SessionDep) -> JSONResponse:
     try:
-        await session.execute(
+        result = await session.execute(
             update(Contribution)
             .where(Contribution.id == contribution_id)
             .values(frequency=data.frequency,
                     name=data.name,
                     description=data.description,
                     amount=data.amount,
-                    type=data.amount)
+                    type=data.type)
         )
-    except:
+        await session.commit()
+
+        # Check number of rows matched by where clause. If it is 0, then there are no rows that were updated by 
+        #   this query. In SQL, this would be a normal query that runs but affects 0 rows. 
+        if result.rowcount is not 1: # type: ignore
+            raise Exception("No contributions were found with this ID, so none were updated")
+    except Exception as e:
+        # TODO: add logging here to capture the exception
         content = {"message": "Failed to update contribution."}
         return JSONResponse(content=content, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
@@ -93,11 +100,18 @@ async def update_contribution(contribution_id: int, data: ContributionUpdate, se
 )
 async def delete_contribution(contribution_id: int, session: SessionDep) -> JSONResponse:
     try:
-        await session.execute(
+        result = await session.execute(
             delete(Contribution)
             .where(Contribution.id == contribution_id)
         )
-    except:
+        await session.commit()
+
+        # Check number of rows matched by where clause. If it is 0, then there are no rows that were deleted by 
+        #   this query. In SQL, this would be a normal query that runs but affects 0 rows. 
+        if result.rowcount is not 1: # type: ignore
+            raise Exception("No contributions were found with this ID, so none were updated")
+    except Exception as e:
+        # TODO: add logging here to capture the exception
         content = {"message": "Failed to delete given contribution."}
         return JSONResponse(content=content, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
@@ -112,11 +126,14 @@ async def delete_contribution(contribution_id: int, session: SessionDep) -> JSON
 )
 async def list_contributions(user_id: int, session: SessionDep) -> JSONResponse:
     try:
-        result: ScalarResult = await session.scalars(select(Contribution).where(Contribution.user_id == user_id))
+        result: ScalarResult = await session.scalars(select(Contribution)
+                                                    .where(Contribution.user_id == user_id)
+                                                    .order_by(Contribution.id.desc()))
         results = result.all()
         contribution_schema: ContributionSchema = ContributionSchema(many=True)
         contribution_json = contribution_schema.dump(results)
-    except:
+    except Exception as e:
+        # TODO: add logging here to capture the exception
         content = {"message": "Failed to retrieve contributions for this user."}
         return JSONResponse(content=content, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
     

@@ -7,8 +7,11 @@ name = "pypi"
 fastapi = {extras = ["standard"], version = "*"}
 psycopg = {extras = ["binary"], version = "*"}
 marshmallow = "*"
-alembic = "*"
 python-dotenv = "*"
+pytest = "*"
+httpx = "*"
+pytest-asyncio = "*"
+alembic = "*"
 
 [dev-packages]
 

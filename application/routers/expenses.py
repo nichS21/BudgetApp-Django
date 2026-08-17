@@ -1,5 +1,3 @@
-import json
-
 from fastapi import APIRouter, status
 from fastapi.responses import JSONResponse
 
@@ -27,10 +25,11 @@ async def create_expense(data: ExpenseCreate, session: SessionDep) -> JSONRespon
                           description=data.description,
                           cost=data.cost,
                           user_id=data.user_id,
-                          is_debt=data.user_id)
+                          is_debt=data.is_debt)
         session.add(expense)
         await session.commit()
-    except:
+    except Exception as e:
+        # TODO: add logging here to capture the exception
         content = {"message": "Failed to create an expense for this user."}
         return JSONResponse(content=content, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
@@ -49,7 +48,8 @@ async def get_expense(expense_id: int, session: SessionDep) -> JSONResponse:
         result = result.one()
         expense_schema: ExpenseSchema = ExpenseSchema()
         expense_json = expense_schema.dump(result)
-    except:
+    except Exception as e:
+        # TODO: add logging here to capture the exception
         content = {"message": f"Failed to retrieve expense with ID: {expense_id}"}
         return JSONResponse(content=content, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
@@ -68,7 +68,7 @@ async def get_expense(expense_id: int, session: SessionDep) -> JSONResponse:
 )
 async def update_expense(expense_id: int, data: ExpenseUpdate, session: SessionDep) -> JSONResponse:
     try:
-        await session.execute(
+        result = await session.execute(
             update(Expense)
             .where(Expense.id == expense_id)
             .values(frequency=data.frequency,
@@ -77,7 +77,14 @@ async def update_expense(expense_id: int, data: ExpenseUpdate, session: SessionD
                     cost=data.cost,
                     is_debt=data.is_debt)
         )
-    except:
+        await session.commit()
+
+        # Check number of rows matched by where clause. If it is 0, then there are no rows that were updated by 
+        #   this query. In SQL, this would be a normal query that runs but affects 0 rows. 
+        if result.rowcount is not 1: # type: ignore
+            raise Exception("No expense rows where found with this ID, so none were updated")
+    except Exception as e:
+        # TODO: add logging here to capture the exception
         content = {"message": "Failed to update expense."}
         return JSONResponse(content=content, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
@@ -96,7 +103,9 @@ async def delete_expense(expense_id: int, session: SessionDep) -> JSONResponse:
             delete(Expense)
             .where(Expense.id == expense_id)
         )
-    except:
+        await session.commit()
+    except Exception as e:
+        # TODO: add logging here to capture the exception
         content = {"message": "Failed to delete given expense."}
         return JSONResponse(content=content, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
@@ -111,11 +120,14 @@ async def delete_expense(expense_id: int, session: SessionDep) -> JSONResponse:
 )
 async def list_expenses(user_id: int, session: SessionDep) -> JSONResponse:
     try:
-        result: ScalarResult = await session.scalars(select(Expense).where(Expense.user_id == user_id))
+        result: ScalarResult = await session.scalars(select(Expense)
+                                                     .where(Expense.user_id == user_id)
+                                                     .order_by(Expense.id.desc()))
         results = result.all()
         expense_schema: ExpenseSchema = ExpenseSchema(many=True)
         expense_json = expense_schema.dump(results)
-    except:
+    except Exception as e:
+        # TODO: add logging here to capture the exception
         content = {"message": "Failed to retrieve expenses for this user."}
         return JSONResponse(content=content, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
     

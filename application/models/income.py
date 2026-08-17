@@ -21,7 +21,7 @@ class Income(ModelBase):
     id: Mapped[int] = mapped_column(primary_key=True)
     annual_salary: Mapped[int] = mapped_column()
     income_tax: Mapped[float] = mapped_column(Float(5))             # For example: 100.00% 
-    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
+    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), unique=True)    # Only one income per user user in the system
 
     # Create reference to User object through income
     user: Mapped["User"] = relationship(back_populates="income")

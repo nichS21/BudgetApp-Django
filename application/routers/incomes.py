@@ -27,7 +27,8 @@ async def create_income_and_tax(data: IncomeCreate, session: SessionDep) -> JSON
                              user_id=data.user_id)
         session.add(user_income)
         await session.commit()
-    except:
+    except Exception as e:
+        # TODO: add logging here to capture the exception
         content = {"message": "Failed to create an income and tax for this user."}
         return JSONResponse(content=content, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) 
 
@@ -46,7 +47,8 @@ async def get_income_and_tax(user_id: int, session: SessionDep):
         result = result.one()
         income_schema: IncomeSchema = IncomeSchema()
         income_json = income_schema.dump(result)
-    except:
+    except Exception as e:
+        # TODO: add logging here to capture the exception
         content = {"message": "Failed retrieve annual income and tax for this user."}
         return JSONResponse(content=content, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -65,15 +67,22 @@ async def get_income_and_tax(user_id: int, session: SessionDep):
         )
 async def update_income_and_tax(user_id: int, data: IncomeUpdate, session: SessionDep) -> JSONResponse:
     try:
-        await session.execute(
+        result = await session.execute(
            update(Income) 
            .where(Income.user_id == user_id)
            .values(annual_salary=data.annual_salary,
                    income_tax=data.income_tax)
         )
-    except:
+        await session.commit()
+
+        # Check number of rows matched by where clause. If it is 0, then there are no rows that were updated by 
+        #   this query. In SQL, this would be a normal query that runs but affects 0 rows. 
+        if result.rowcount is not 1: # type: ignore
+            raise Exception("No income rows were matched with this ID, so none were updated")
+    except Exception as e:
+        # TODO: add logging here to capture the exception
         content = {"message": "Failed to update income and tax for this user."}
         return JSONResponse(content=content, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    content = {"message": "Successfully updated for income and tax."}
+    content = {"message": "Successfully updated income for this user."}
     return JSONResponse(content=content, status_code=status.HTTP_200_OK)

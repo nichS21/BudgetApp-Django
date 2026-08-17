@@ -26,7 +26,7 @@ class Contribution(ModelBase):
     __tablename__ = "contribution"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    frequency: Mapped[float] = mapped_column(NUMERIC())     # Frequency of occurrence relative to a month. For example, quarterly is 1/3 the total quarterly cost, applied every month
+    frequency: Mapped[float] = mapped_column(NUMERIC())     # Frequency of occurrence relative to a month. For example, quarterly is 1/3 the total monthly cost, applied every month (frequency = '1/3')
     name: Mapped[str] = mapped_column(String(255))
     description: Mapped[str] = mapped_column(String(511))
     amount: Mapped[float] = mapped_column(NUMERIC())
