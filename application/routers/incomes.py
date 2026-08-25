@@ -84,7 +84,7 @@ async def update_income_and_tax(user_id: int, data: IncomeUpdate, session: Sessi
 
         # Check number of rows matched by where clause. If it is 0, then there are no rows that were updated by 
         #   this query. In SQL, this would be a normal query that runs but affects 0 rows. 
-        if result.rowcount is not 1: # type: ignore
+        if result.rowcount != 1: # type: ignore
             raise Exception("No income rows were matched with this ID, so none were updated")
 
         logger.debug(f"Successfully updated an income and tax for user with ID: {user_id}.")

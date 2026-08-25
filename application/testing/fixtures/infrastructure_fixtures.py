@@ -1,8 +1,5 @@
 from typing import Annotated
 
-from fastapi import Depends
-import pytest
-
 import pytest_asyncio
 
 from httpx import ASGITransport, AsyncClient
@@ -29,7 +26,7 @@ TestingSessionLocal = async_sessionmaker(autocommit=False, autoflush=False, bind
 
 @pytest_asyncio.fixture()
 async def session():
-    # Create a clean database with just the tables in it, then close the connection
+    # For each test drop all tables if present, then recreate them as empty tables, for each test
     async with test_engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
