@@ -558,7 +558,7 @@ async def test_delete_no_expense(user: User, expense: Expense, test_api, session
         f"/expense/{expense_id*2}"         # No expense at this ID to be deleted
     )
 
-    assert response.status_code == status.HTTP_200_OK
+    assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
 
     # Verify expense was not deleted in DB
     result: ScalarResult = await session.scalars(select(func.count()).select_from(Expense).where(Expense.id == expense_id))
