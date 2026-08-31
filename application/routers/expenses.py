@@ -54,7 +54,7 @@ async def get_expense(expense_id: int, session: SessionDep) -> JSONResponse:
         result = result.one()
         expense_schema: ExpenseSchema = ExpenseSchema()
         expense_json = expense_schema.dump(result)
-        
+
         logger.debug(f"Successfully retrieved expense, ID: {expense_id}.")
     except Exception as e:
         log: str = f"Failed to get an expense with ID: {expense_id}." if expense_id is not None else "No ID was given to retrieve an expense."
@@ -111,7 +111,7 @@ async def update_expense(expense_id: int, data: ExpenseUpdate, session: SessionD
 )
 async def delete_expense(expense_id: int, session: SessionDep) -> JSONResponse:
     try:
-        await session.execute(
+        result = await session.execute(
             delete(Expense)
             .where(Expense.id == expense_id)
         )
