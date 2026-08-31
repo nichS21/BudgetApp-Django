@@ -10,6 +10,9 @@ from application.models.income import Income, IncomeSchema
 from application.models.expense import Expense, ExpenseSchema
 from application.models.contribution import Contribution, ContributionSchema
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 overview_router = APIRouter(
     prefix="/overview",
@@ -54,11 +57,10 @@ async def get_overview(user_id: int, session: SessionDep) -> JSONResponse:
         for expense in expenses:
             expense_monthly_total += float(expense.monthly_cost)
 
+        logger.debug(f"Successfully retrieved account overview for user with ID: {user_id}.")
     except Exception as e:
-        # TODO: add specific error handling to each query so can track which one fails specifically - this can be handled by logger based on the exception caught
-        print(f"Exception:\n{e}")
-        traceback.print_exc()
-
+        log: str = f"Failed to retrieve an account overview for user with ID: {user_id}." if user_id is not None else "No ID was given to retrieve an account overview"
+        logger.error(f"{log} \n[Exception] {e}")            
         content = {"message": "Failed to get user's overview."}
         return JSONResponse(content=content, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
      

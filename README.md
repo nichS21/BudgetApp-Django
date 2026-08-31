@@ -1,2 +1,2 @@
-# BudgetApp-Django
+# BudgetApp-FastAPI
 FastAPI for budgeting app. 

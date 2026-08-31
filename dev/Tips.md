@@ -1,0 +1,2 @@
+1) Use `command >> file.txt 2>&1` to append all output (stdout and stderr) to a file in Linux shells. Useful for redirecting logging to a file for local dev instead of console.
+    1) `fastapi dev --host 0.0.0.0 --port 8000 --entrypoint application.app:app >> ../logging/backend-api/dev.log 2>&1 &` Redirect all stdout and sterr from this command to a log file (while running the process in the background)
