@@ -31,6 +31,7 @@ async def create_expense(data: ExpenseCreate, session: SessionDep) -> JSONRespon
                           is_debt=data.is_debt)
         session.add(expense)
         await session.commit()
+
         logger.debug(f"Sucessfully created expense for User, ID: {data.user_id}.")
     except Exception as e:
         log: str = f"Failed to create an expense for user with ID: {data.user_id}." if data.user_id is not None else "No ID was given to create an expense."
@@ -53,6 +54,7 @@ async def get_expense(expense_id: int, session: SessionDep) -> JSONResponse:
         result = result.one()
         expense_schema: ExpenseSchema = ExpenseSchema()
         expense_json = expense_schema.dump(result)
+        
         logger.debug(f"Successfully retrieved expense, ID: {expense_id}.")
     except Exception as e:
         log: str = f"Failed to get an expense with ID: {expense_id}." if expense_id is not None else "No ID was given to retrieve an expense."
@@ -88,8 +90,8 @@ async def update_expense(expense_id: int, data: ExpenseUpdate, session: SessionD
 
         # Check number of rows matched by where clause. If it is 0, then there are no rows that were updated by 
         #   this query. In SQL, this would be a normal query that runs but affects 0 rows. 
-        if result.rowcount is not 1: # type: ignore
-            raise Exception("No expense rows where found with this ID, so none were updated")
+        if result.rowcount != 1: # type: ignore
+            raise Exception("No expense rows were found with this ID, so none were updated")
 
         logger.debug(f"Successfully updated expense, ID: {expense_id}.")
     except Exception as e:
@@ -114,6 +116,11 @@ async def delete_expense(expense_id: int, session: SessionDep) -> JSONResponse:
             .where(Expense.id == expense_id)
         )
         await session.commit()
+
+        # Check number of rows matched by where clause. If it is 0, then there are no rows that were deleted by 
+        #   this query. In SQL, this would be a normal query that runs but affects 0 rows. 
+        if result.rowcount != 1: # type: ignore
+            raise Exception("No expenses were found with this ID, so none were deleted")
 
         logger.debug(f"Succesfully deleted expense, ID: {expense_id}.")
     except Exception as e:

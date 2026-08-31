@@ -32,6 +32,7 @@ async def create_contribution(data: ContributionCreate, session: SessionDep) -> 
                                     )
         session.add(contribution)
         await session.commit()
+        
         logger.debug(f"Contribution created successfully for User ID: {data.user_id}.")
     except Exception as e:
         log: str = f"Failed to create a contribution for User ID: {data.user_id}." if data.user_id is not None else "No user ID was given to create a contribution."
@@ -90,7 +91,7 @@ async def update_contribution(contribution_id: int, data: ContributionUpdate, se
 
         # Check number of rows matched by where clause. If it is 0, then there are no rows that were updated by 
         #   this query. In SQL, this would be a normal query that runs but affects 0 rows. 
-        if result.rowcount is not 1: # type: ignore
+        if result.rowcount != 1: # type: ignore
             raise Exception("No contributions were found with this ID, so none were updated")
 
         logger.debug(f"Successfully updated contribution, ID: {contribution_id}.")
@@ -119,8 +120,8 @@ async def delete_contribution(contribution_id: int, session: SessionDep) -> JSON
 
         # Check number of rows matched by where clause. If it is 0, then there are no rows that were deleted by 
         #   this query. In SQL, this would be a normal query that runs but affects 0 rows. 
-        if result.rowcount is not 1: # type: ignore
-            raise Exception("No contributions were found with this ID, so none were updated")
+        if result.rowcount != 1: # type: ignore
+            raise Exception("No contributions were found with this ID, so none were deleted")
 
         logger.debug(f"Successfully deleted contribution with ID: {contribution_id}.")
     except Exception as e:
